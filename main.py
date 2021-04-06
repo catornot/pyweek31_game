@@ -57,7 +57,6 @@ class circle_wall(Distance):
                     self.distance(P.x, P.y, self.x, self.y) + 2
                 P.append_to_keys_blocked("s")
 
-
 class player(Distance):
     x = 100
     y = 200
@@ -364,15 +363,70 @@ class coin(Distance):
             coin_sound.play()
 
 
-class radius_wall():
-    def __init__(self, radius,cords,bufer_cords):
+class radius_wall(Distance):
+    def __init__(self, radius,cords,bufer_cords,bufer_cords_small):
         self.radius = radius
         self.x, self.y = cords
         self.cords = cords
         self.bufer_cords = bufer_cords
+        self.bufer_cords_small = bufer_cords_small
 
     def radius_wall_update(self,P):
-        pass
+        if self.bufer_cords != None:
+            if self.bufer_cords >= P.radius:
+                pygame.draw.circle(screen, (173,216,230,255), self.cords, self.radius)
+            else:
+                pygame.draw.circle(screen, (173,216,255,0), self.cords, self.radius)
+
+            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords >= P.radius:
+                if P.x > self.x:
+                    P.setx += self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("a")
+
+                elif P.x < self.x:
+                    P.setx -= self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("d")
+
+                if P.y > self.y:
+                    P.sety += self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("w")
+
+                elif P.y < self.y:
+                    P.sety -= self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("s")
+
+        elif self.bufer_cords_small != None:
+            if self.bufer_cords_small <= P.radius:
+                pygame.draw.circle(screen, (173,216,230,255), self.cords, self.radius)
+            else:
+                pygame.draw.circle(screen, (173,216,255,0), self.cords, self.radius)
+
+            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords_small <= P.radius:
+                if P.x > self.x:
+                    P.setx += self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("a")
+
+                elif P.x < self.x:
+                    P.setx -= self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("d")
+
+                if P.y > self.y:
+                    P.sety += self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("w")
+
+                elif P.y < self.y:
+                    P.sety -= self.radius + P.radius - \
+                        self.distance(P.x, P.y, self.x, self.y) + 2
+                    P.append_to_keys_blocked("s")
+
+
 
         
 
@@ -399,21 +453,13 @@ mixer.music.load("game_files\\music.wav")
 mixer.music.play(-1)
 # link https://musiclab.chromeexperiments.com/Song-Maker/song/6698332794126336
 
+# The game can be run by executing run_game.py
+# Note: This pygame uses pygame.SCALED and the vsync setting in `pygame.display.set_mode()` to aim
+# to provide a better experience for different display sizes.
 
-while running:  # Loop forever!
-    # You can update/draw here, I've just moved the code for neatness.
 
-    """
-    Update game. Called once per frame.
-    dt is the amount of time passed since last frame.
-    If you want to have constant apparent movement no matter your framerate,
-    what you can do is something like
+while running:
 
-    x += v * dt
-
-    and this will scale your velocity based on time. Extend as necessary."""
-
-    # Go through events that are passed to the script by the window.
     for event in pygame.event.get():
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
@@ -467,6 +513,12 @@ while running:  # Loop forever!
                 x = i
                 i.insert(1, coin(i[1], i[2]).coin_update)
                 loaded_level.append(i)
+
+            elif i[0] == 8:
+                x = i
+                i.insert(1, radius_wall(i[1], i[2], i[3], i[4]).radius_wall_update)
+                loaded_level.append(i)
+
         ran = True
         P.set_restart(False)
         P.set_arrested(False)
@@ -497,6 +549,9 @@ while running:  # Loop forever!
             list_ran.append(var2)
 
         elif i[0] == 7:
+            i[1](P)
+
+        elif i[0] == 8:
             i[1](P)
 
     if False in list_ran:

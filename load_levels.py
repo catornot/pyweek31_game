@@ -27,6 +27,10 @@ class levels:
             return self.level4(screen)
         elif string == "level5":
             return self.level5(screen)
+        elif string == "level6":
+            return self.level6(screen)
+        elif string == "level7":
+            return self.level5(screen)
 
         else:
             print(string)
@@ -67,26 +71,28 @@ class levels:
             [3, 20, (600, 200), 50, 10],
             [4, 20, (600, 350), 50, 10],
             [5, 20, (700, 400), "main_menu"],
-            [6, 30, (700,100),"test","main_menu"],
-            [7, 20, (700,500)]
+            [6, 30, (700, 100), "test", "main_menu"],
+            [7, 20, (700, 500)],
+            [8, 30, (800, 450), 40, None],
+            [8, 30, (200, 350), None, 11],
 
 
         ]
 
         return self.add_walls(level, screen)
 
-    def main_menu(self,screen):
+    def main_menu(self, screen):
         level = [
 
             [2, 30, (500, 400)],
-            [6, 30, (200,200),"Play",None],
-            [6, 30, (200,275),"credits : cat_or_not",None],
-            [6, 30, (200,350),"level editor (soon)",None],
-            [6, 30, (200,425),"exit : key esc",None],
+            [6, 30, (200, 200), "Play", None],
+            [6, 30, (200, 275), "credits : cat_or_not", None],
+            [6, 30, (200, 350), "level editor (soon)", None],
+            [6, 30, (200, 425), "exit : key esc", None],
             [5, 30, (300, 200), "level1"],
-            [6, 30, (600,200),"test level",None],
+            [6, 30, (600, 200), "test level", None],
             [5, 30, (700, 200), "test"],
-            [6, 30, (600,275),"custom level (soon)",None],
+            [6, 30, (600, 275), "custom level (soon)", None],
 
 
 
@@ -139,7 +145,7 @@ class levels:
     def level3(self, screen):
         level = [
 
-            
+
             [2, 10, (850, 300)],
             [0, 30, (140, 160)],
             [3, 20, (160, 400), 50, 10],
@@ -163,7 +169,7 @@ class levels:
 
     def level4(self, screen):
         level = [
-            
+
             [2, 30, (75, 270)],
             [3, 20, (850, 90), 50, 10],
             [4, 20, (400, 90), 50, 10],
@@ -172,7 +178,10 @@ class levels:
             [5, 20, (850, 270), "level5"],
             [1, (500, 400), (550, 500), 30],
             [1, (450, 500), (400, 400), 30],
-            [7, 20, (850,450)],
+            [7, 20, (850, 450)],
+            [8, 30, (100, 350), None,11],
+            [8, 30, (150, 350), None,11],
+            [8, 30, (50, 350), None,11],
 
         ]
 
@@ -184,13 +193,34 @@ class levels:
 
     def level5(self, screen):
         level = [
-            
+
+            [2, 30, (75, 270 - 60)],
+            [1, (600, 100), (200, 100), 30],
+            [1, (600, 200), (250, 200), 30],
+            [1, (600, 300), (300, 300), 30],
+            [3, 30, (75, 270 + (270 + 100) / 2), 50, 10],
+            [5, 20, (60, 60), "level6"],
+            [0, 30, (130, 50)],
+            [0, 30, (100, 100)],
+
+
+
+        ]
+
+        level = self.creat_wall_h(level, 0, 10, 30, 270 + 100)
+
+        return self.add_walls(level, screen)
+
+    def level6(self, screen):
+        level = [
+
             [2, 30, (500, 400)],
-            [6, 30, (480,190),"Thanks for playing",None],
-            [6, 30, (480,210),"I will add more content later on icht.io",None],
-            [6, 30, (480,230),"Now you could try to make your own levels",None],
-            [6, 30, (480,250),"with the load_levels.py file if you have the source version",None],
-            [6, 40, (480,270),"to main menu","main_menu"],
+            [6, 30, (480, 190), "Thanks for playing", None],
+            [6, 30, (480, 210), "I will add more content later on icht.io", None],
+            [6, 30, (480, 230), "Now you could try to make your own levels", None],
+            [6, 30, (480, 250),
+             "with the load_levels.py file if you have the source version", None],
+            [6, 40, (480, 270), "to main menu", "main_menu"],
             [5, 20, (480 + 90, 280), "main_menu"],
 
         ]
