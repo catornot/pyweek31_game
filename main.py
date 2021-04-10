@@ -16,7 +16,7 @@ fpsClock = pygame.time.Clock()
 width, height = int(1920 / 2), int(1080 / 2)
 screen = pygame.display.set_mode((width, height))
 
-#icon
+# icon
 icon = pygame.image.load("game_files\\blob.ico")
 pygame.display.set_icon(icon)
 
@@ -36,7 +36,7 @@ class circle_wall(Distance):
 
         pygame.draw.circle(screen, (211, 211, 211), self.cords, self.radius)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if P.x > self.x:
                 P.setx += self.radius + P.radius - \
                     self.distance(P.x, P.y, self.x, self.y) + 2
@@ -57,6 +57,7 @@ class circle_wall(Distance):
                     self.distance(P.x, P.y, self.x, self.y) + 2
                 P.append_to_keys_blocked("s")
 
+
 class player(Distance):
     x = 100
     y = 200
@@ -67,6 +68,7 @@ class player(Distance):
     restart_level = False
     font = pygame.font.SysFont("Arial", 24)
     counter = 0
+    launched = False
 
     def __init__(self):
         pass
@@ -87,8 +89,9 @@ class player(Distance):
             keys_down.append("a")
         if keys[K_r]:
             keys_down.append("r")
-
-        pygame.draw.circle(screen, (0, 0, 255), (self.x, self.y), self.radius)
+        if self.radius < 100:
+            pygame.draw.circle(screen, (0, 0, 255),
+                               (self.x, self.y), self.radius)
 
         if "r" in keys_down:
             self.restart_level = True
@@ -141,6 +144,7 @@ class player(Distance):
 
     def set_arrested(self, state: bool):
         self.arrested = state
+        print(self.arrested)
 
     @property
     def Radius(self):
@@ -152,6 +156,9 @@ class player(Distance):
 
     def set_restart(self, state: bool):
         self.restart_level = state
+
+    def set_launched(self, state: bool):
+        self.launched = state
 
 
 class guard(Distance):
@@ -197,7 +204,7 @@ class guard(Distance):
             var = self.current_cords[1] + move
             self.current_cords = (self.current_cords[1], var)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.death:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.death and not P.launched:
             if P.radius < self.radius + 10:
                 P.set_arrested(True)
                 # move player
@@ -256,7 +263,7 @@ class size_pad(Distance):
         text_rect.centery = self.cords[1]
         screen.blit(text, text_rect)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if P.radius > self.size_change_min:
                 P.Radius = P.radius - 1
             else:
@@ -271,7 +278,7 @@ class size_pad(Distance):
         text_rect.centery = self.cords[1]
         screen.blit(text, text_rect)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if P.radius < self.size_change_max:
                 P.Radius = P.radius + 1
             else:
@@ -297,7 +304,7 @@ class end_point(Distance):
         text_rect.centery = self.cords[1]
         screen.blit(text, text_rect)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if not self.played:
                 end_sound = mixer.Sound("game_files\\next_level.wav")
                 end_sound.play(0)
@@ -326,7 +333,7 @@ class text_box(Distance):
         text_rect.centery = self.cords[1]
         screen.blit(text, text_rect)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if self.next_level != None:
                 if not self.played:
                     end_sound = mixer.Sound("game_files\\next_level.wav")
@@ -357,28 +364,30 @@ class coin(Distance):
             text_rect.centery = self.cords[1]
             screen.blit(text, text_rect)
 
-        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.pickedUp:
-            self.pickedUp  = True
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.pickedUp and not P.launched:
+            self.pickedUp = True
             coin_sound = mixer.Sound("game_files\\coin_sound.wav")
             coin_sound.play()
 
 
 class radius_wall(Distance):
-    def __init__(self, radius,cords,bufer_cords,bufer_cords_small):
+    def __init__(self, radius, cords, bufer_cords, bufer_cords_small):
         self.radius = radius
         self.x, self.y = cords
         self.cords = cords
         self.bufer_cords = bufer_cords
         self.bufer_cords_small = bufer_cords_small
 
-    def radius_wall_update(self,P):
+    def radius_wall_update(self, P):
         if self.bufer_cords != None:
             if self.bufer_cords >= P.radius:
-                pygame.draw.circle(screen, (173,216,230,255), self.cords, self.radius)
+                pygame.draw.circle(
+                    screen, (173, 216, 230, 255), self.cords, self.radius)
             else:
-                pygame.draw.circle(screen, (173,216,255,0), self.cords, self.radius)
+                pygame.draw.circle(screen, (173, 216, 255, 0),
+                                   self.cords, self.radius)
 
-            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords >= P.radius:
+            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords >= P.radius and not P.launched:
                 if P.x > self.x:
                     P.setx += self.radius + P.radius - \
                         self.distance(P.x, P.y, self.x, self.y) + 2
@@ -401,11 +410,13 @@ class radius_wall(Distance):
 
         elif self.bufer_cords_small != None:
             if self.bufer_cords_small <= P.radius:
-                pygame.draw.circle(screen, (173,216,230,255), self.cords, self.radius)
+                pygame.draw.circle(
+                    screen, (173, 216, 230, 255), self.cords, self.radius)
             else:
-                pygame.draw.circle(screen, (173,216,255,0), self.cords, self.radius)
+                pygame.draw.circle(screen, (173, 216, 255, 0),
+                                   self.cords, self.radius)
 
-            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords_small <= P.radius:
+            if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and self.bufer_cords_small <= P.radius and not P.launched:
                 if P.x > self.x:
                     P.setx += self.radius + P.radius - \
                         self.distance(P.x, P.y, self.x, self.y) + 2
@@ -427,14 +438,48 @@ class radius_wall(Distance):
                     P.append_to_keys_blocked("s")
 
 
+class jump_pad(Distance):
+    font = pygame.font.SysFont("Arial", 24)
+    launched = False
 
-        
+    def __init__(self, radius, cords, lauch_to):
+        self.cords = cords
+        self.x, self.y = cords
+        self.radius = radius
+        self.x2, self.y2 = lauch_to
+        self.lauch_to = lauch_to
 
+    def jump_pad_update(self, p):
+        pygame.draw.circle(screen, (50, 205, 50), self.cords, self.radius)
 
+        text = self.font.render("_", True, (0, 0, 0))
+        text_rect = text.get_rect()
+        text_rect.centerx = self.cords[0]
+        text_rect.centery = self.cords[1]
+        screen.blit(text, text_rect)
 
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
+            self.launched = True
+            P.set_launched(True)
 
+        if self.launched:
+            move = 5
+            if P.x > self.x2:
+                movex = P.x / self.x
+                P.setx -= move
+            else:
+                movex = self.x / P.x
+                P.setx += move
+            if P.y > self.y2:
+                movey = P.y / self.y
+                P.sety -= move
+            else:
+                movey = self.y / P.y
+                P.sety += move
 
-
+        if self.distance(P.x, P.y, self.x2, self.y2) <= self.radius + P.radius:
+            self.launched = False
+            P.set_launched(False)
 
 
 dt = 0
@@ -516,7 +561,13 @@ while running:
 
             elif i[0] == 8:
                 x = i
-                i.insert(1, radius_wall(i[1], i[2], i[3], i[4]).radius_wall_update)
+                i.insert(1, radius_wall(
+                    i[1], i[2], i[3], i[4]).radius_wall_update)
+                loaded_level.append(i)
+            elif i[0] == 9:
+                x = i
+                i.insert(1, jump_pad(
+                    i[1], i[2], i[3]).jump_pad_update)
                 loaded_level.append(i)
 
         ran = True
@@ -552,6 +603,8 @@ while running:
             i[1](P)
 
         elif i[0] == 8:
+            i[1](P)
+        elif i[0] == 9:
             i[1](P)
 
     if False in list_ran:
