@@ -5,6 +5,7 @@ from pygame import mixer
 from math import sqrt, pow
 from load_levels import levels
 
+
 # Initialise PyGame.
 pygame.init()
 
@@ -17,8 +18,12 @@ width, height = int(1920 / 2), int(1080 / 2)
 screen = pygame.display.set_mode((width, height))
 
 # icon
-icon = pygame.image.load("game_files\\blob.ico")
+icon = pygame.image.load("game_files/blob.ico")
 pygame.display.set_icon(icon)
+
+#title
+pygame.display.set_caption("corcle")
+
 
 
 class Distance():
@@ -144,7 +149,6 @@ class player(Distance):
 
     def set_arrested(self, state: bool):
         self.arrested = state
-        print(self.arrested)
 
     @property
     def Radius(self):
@@ -202,7 +206,7 @@ class guard(Distance):
 
         elif self.current_goal[1] > self.current_cords[1]:
             var = self.current_cords[1] + move
-            self.current_cords = (self.current_cords[1], var)
+            self.current_cords = (self.current_cords[0], var)
 
         if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.death and not P.launched:
             if P.radius < self.radius + 10:
@@ -229,7 +233,7 @@ class guard(Distance):
                     P.append_to_keys_blocked("s")
 
             else:
-                hit = mixer.Sound("game_files\\hit.wav")
+                hit = mixer.Sound("game_files/hit.wav")
                 hit.play(0)
                 self.death = True
 
@@ -238,10 +242,9 @@ class guard(Distance):
                                self.current_cords, self.radius)
 
         if P.arrested and not self.sound_played:
-            hit = mixer.Sound("game_files\\hit.wav")
+            hit = mixer.Sound("game_files/hit.wav")
             hit.play(0)
             self.sound_played = True
-
 
 class size_pad(Distance):
     font = pygame.font.SysFont("Arial", 24)
@@ -306,7 +309,7 @@ class end_point(Distance):
 
         if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if not self.played:
-                end_sound = mixer.Sound("game_files\\next_level.wav")
+                end_sound = mixer.Sound("game_files/next_level.wav")
                 end_sound.play(0)
                 self.played = True
 
@@ -336,7 +339,7 @@ class text_box(Distance):
         if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
             if self.next_level != None:
                 if not self.played:
-                    end_sound = mixer.Sound("game_files\\next_level.wav")
+                    end_sound = mixer.Sound("game_files/next_level.wav")
                     end_sound.play(0)
                     self.played = True
 
@@ -366,7 +369,7 @@ class coin(Distance):
 
         if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not self.pickedUp and not P.launched:
             self.pickedUp = True
-            coin_sound = mixer.Sound("game_files\\coin_sound.wav")
+            coin_sound = mixer.Sound("game_files/coin_sound.wav")
             coin_sound.play()
 
 
@@ -441,6 +444,8 @@ class radius_wall(Distance):
 class jump_pad(Distance):
     font = pygame.font.SysFont("Arial", 24)
     launched = False
+    x_range = []
+    y_range = []
 
     def __init__(self, radius, cords, lauch_to):
         self.cords = cords
@@ -461,25 +466,96 @@ class jump_pad(Distance):
         if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius:
             self.launched = True
             P.set_launched(True)
+            P.append_to_keys_blocked("a")
+            P.append_to_keys_blocked("w")
+            P.append_to_keys_blocked("s")
+            P.append_to_keys_blocked("d")
+
+            self.x_range.clear()
+
+            for x in range(-5, 6):
+                self.x_range.append(self.x2 + x)
+
+            self.y_range.clear()
+            for x in range(-5, 6):
+                self.y_range.append(self.y2 + x)
 
         if self.launched:
             move = 5
-            if P.x > self.x2:
-                movex = P.x / self.x
-                P.setx -= move
+            if int(P.x) in self.x_range:
+                pass
+            elif P.x > self.x2:
+                movex = int(P.x / self.x + 6)
+                P.setx -= movex
             else:
-                movex = self.x / P.x
-                P.setx += move
-            if P.y > self.y2:
-                movey = P.y / self.y
-                P.sety -= move
+                movex = int(self.x2 / P.x + 6)
+                P.setx += movex
+            if int(P.y) in self.y_range:
+                pass
+            elif P.y > self.y2:
+                movey = int(P.y / self.y2 + 6)
+                P.sety -= movey
             else:
-                movey = self.y / P.y
-                P.sety += move
+                movey = int(self.y2 / P.y + 6)
+                P.sety += movey
 
-        if self.distance(P.x, P.y, self.x2, self.y2) <= self.radius + P.radius:
+            P.append_to_keys_blocked("a")
+            P.append_to_keys_blocked("w")
+            P.append_to_keys_blocked("s")
+            P.append_to_keys_blocked("d")
+            P.set_launched(True)
+
+        if self.distance(P.x, P.y, self.x2, self.y2) <= 10 + P.radius:
             self.launched = False
             P.set_launched(False)
+
+
+class Channel():
+    channel = {}
+
+    def __init__(self):
+        for i in range(1, 10):
+            self.channel[str(i)] = False
+
+    def reset(self):
+        self.channel.clear()
+        for i in range(1, 10):
+            self.channel[str(i)] = False
+
+
+class Button(Distance):
+    font = pygame.font.SysFont("Arial", 24)
+    display = "^^"
+    activited = False
+
+    def __init__(self, radius, cords, hold, channel):
+        self.radius, self.cords, self.channel = radius, cords, channel
+        self.hold = hold
+
+    def button_update(self, P, C):
+        pygame.draw.circle(screen, (0, 0, 0), self.cords, self.radius)
+
+        text = self.font.render(self.display, True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.centerx = self.cords[0]
+        text_rect.centery = self.cords[1]
+        screen.blit(text, text_rect)
+
+        
+
+        if self.distance(P.x, P.y, self.x, self.y) <= self.radius + P.radius and not P.launched:
+            C.channel[self.channel] = True
+            self.activited = True
+            self.display = "="
+
+        elif self.hold:
+            if self.activited:
+                C.channel[self.channel] = True
+                self.display = "="
+
+        else:
+            C.channel[self.channel] = False
+            self.display = "^^"
 
 
 dt = 0
@@ -487,6 +563,7 @@ running = True
 ran = False
 keys_down = []
 P = player()
+C = Channel()
 current_level = "main_menu"
 loaded_level = []
 redirection = []
@@ -508,6 +585,10 @@ while running:
     for event in pygame.event.get():
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             running = False
+
+        if event.type == MOUSEBUTTONDOWN:
+                ## if mouse is pressed get position of cursor ##
+                print(pygame.mouse.get_pos())
 
     screen.fill((205-30, 205-30, 205-30))  # Fill the screen with black.
 
@@ -573,6 +654,7 @@ while running:
         ran = True
         P.set_restart(False)
         P.set_arrested(False)
+        C.reset()
 
     list_current_level = []
     list_ran = []
@@ -604,6 +686,7 @@ while running:
 
         elif i[0] == 8:
             i[1](P)
+
         elif i[0] == 9:
             i[1](P)
 
